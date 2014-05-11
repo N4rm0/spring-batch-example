@@ -1,5 +1,7 @@
 package springbatch.flowjob;
 
+import javax.sql.DataSource;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -16,9 +18,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 @Configuration
 @EnableBatchProcessing
+// annotation to autoconfigure jobbuilders stepbuilders.
 public class JobConfig {
 
 	@Autowired
@@ -26,6 +31,14 @@ public class JobConfig {
 
 	@Autowired
 	private StepBuilderFactory stepBuilderFactory;
+
+	@Bean(destroyMethod = "shutdown")
+	public DataSource dataSource() {
+		// Spring Batch requires a data-source to log execution details, so
+		// create a h2 memory data source
+		final EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+		return builder.setType(EmbeddedDatabaseType.H2).build();
+	}
 
 	@Bean
 	public Job job() {
@@ -53,13 +66,16 @@ public class JobConfig {
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
-		ApplicationContext appContext = new AnnotationConfigApplicationContext(
+		// create spring application context
+		final ApplicationContext appContext = new AnnotationConfigApplicationContext(
 				JobConfig.class);
-
-		JobConfig jobConfig = appContext.getBean(JobConfig.class);
-		JobLauncher launcher = appContext.getBean(JobLauncher.class);
+		// get the job config bean (i.e this bean)
+		final JobConfig jobConfig = appContext.getBean(JobConfig.class);
+		// get the job launcher by
+		final JobLauncher launcher = appContext.getBean(JobLauncher.class);
 
 		try {
+			// launch the job
 			launcher.run(jobConfig.job(), new JobParameters());
 		} catch (JobExecutionAlreadyRunningException | JobRestartException
 				| JobInstanceAlreadyCompleteException
@@ -67,4 +83,5 @@ public class JobConfig {
 			e.printStackTrace();
 		}
 	}
+
 }
