@@ -2,9 +2,12 @@ package springbatch.flowjob;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
@@ -18,7 +21,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-// annotation to autoconfigure jobbuilders stepbuilders.
+// do not use @EnableBatchProcessing, we set up manually for rapid prototyping
 public class JobConfig {
 
 	private PlatformTransactionManager transactionManager = new ResourcelessTransactionManager();
@@ -41,6 +44,13 @@ public class JobConfig {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	@Bean
+	public JobLauncher jobLauncher() {
+		final SimpleJobLauncher launcher = new SimpleJobLauncher();
+		launcher.setJobRepository(jobRepository());
+		return launcher;
 	}
 
 	@Bean
@@ -74,13 +84,14 @@ public class JobConfig {
 				JobConfig.class);
 		// get the job config bean (i.e this bean)
 		final JobConfig jobConfig = appContext.getBean(JobConfig.class);
-		// get the job launcher by
-		JobRepository repo = jobConfig.jobRepository();
+		// get the job launcher
+		JobLauncher launcher = jobConfig.jobLauncher();
 		try {
 			// launch the job
-			repo.createJobExecution("job", new JobParameters());
+			launcher.run(jobConfig.job(), new JobParameters());
 		} catch (JobExecutionAlreadyRunningException | JobRestartException
-				| JobInstanceAlreadyCompleteException e) {
+				| JobInstanceAlreadyCompleteException
+				| JobParametersInvalidException e) {
 			e.printStackTrace();
 		}
 	}

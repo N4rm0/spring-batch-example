@@ -39,6 +39,9 @@
 				<configuration>
 					<source>${jdk.version}</source>
 					<target>${jdk.version}</target>
+					<!-- debug compilation options -->
+					<!-- <debug>true</debug> -->
+					<!-- <debuglevel>lines,vars,source</debuglevel> -->
 				</configuration>
 			</plugin>
 			<plugin>
