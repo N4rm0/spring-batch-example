@@ -55,8 +55,9 @@ public class JobConfig {
 
 	@Bean
 	public Job job() {
-		return jobBuilderFactory().get("job").flow(stepA()).on("FAILED")
-				.to(stepB()).from(stepA()).on("*").to(stepC()).end().build();
+		return jobBuilderFactory().get("job").
+				flow(stepA()).on("FAILED").to(stepB()).
+				from(stepA()).on("*").to(stepC()).end().build();
 	}
 
 	@Bean
