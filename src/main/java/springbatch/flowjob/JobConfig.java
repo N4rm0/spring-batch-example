@@ -43,14 +43,6 @@ public class JobConfig {
 		}
 	}
 
-	// @Bean(destroyMethod = "shutdown")
-	// public DataSource dataSource() {
-	// // Spring Batch requires a data-source to log execution details, so
-	// // create a h2 memory data source
-	// final EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-	// return builder.setType(EmbeddedDatabaseType.H2).build();
-	// }
-
 	@Bean
 	public Job job() {
 		return jobBuilderFactory().get("job").flow(stepA()).on("FAILED")
